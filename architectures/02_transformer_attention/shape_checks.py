@@ -1,6 +1,7 @@
 import torch
 
 from scaled_dot_product_attention import scaled_dot_product_attention
+from multi_head_attention import MultiHeadAttention
 
 
 def check_scaled_dot_product_attention():
@@ -25,9 +26,33 @@ def check_scaled_dot_product_attention():
     attn_weights_row_sums = attn_weights.sum(dim=-1) # should sum to 1.0
     assert torch.allclose(attn_weights_row_sums, torch.ones_like(attn_weights_row_sums), atol=1e-5)
 
+def check_multi_head_attention():
+    batch_size = 2
+    seq_len = 5
+    embed_dim = 32
+    num_heads = 4
+
+    x = torch.rand(batch_size, seq_len, embed_dim)
+
+    mha = MultiHeadAttention(embed_dim=embed_dim, num_heads=num_heads)
+    output, attn_weights = mha(x)
+
+    print("mha output:", output.shape)
+    print("mha attention_weights:", attn_weights.shape)
+
+    assert output.shape == torch.Size([batch_size, seq_len, embed_dim])
+    assert attn_weights.shape == torch.Size([batch_size, num_heads, seq_len, seq_len])
+
+    row_sums = attn_weights.sum(dim=-1)
+    assert torch.allclose(row_sums, torch.ones_like(row_sums), atol=1e-5)
+
+    print("Multi-head attention shape checks passed.")
+
+
 def main():
     check_scaled_dot_product_attention()
-    print("Scaled dot-product attention shape checks passed.")
+    check_multi_head_attention()
+    print("Transformer attention shape checks passed.")
 
 if __name__ == '__main__':
     main()
