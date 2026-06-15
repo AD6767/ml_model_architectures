@@ -2,6 +2,7 @@ import torch
 
 from scaled_dot_product_attention import scaled_dot_product_attention
 from multi_head_attention import MultiHeadAttention
+from transformer_block import TransformerBlock
 
 
 def check_scaled_dot_product_attention():
@@ -48,10 +49,33 @@ def check_multi_head_attention():
 
     print("Multi-head attention shape checks passed.")
 
+def check_transformer_block():
+    batch_size = 2
+    seq_len = 5
+    embed_dim = 32
+    num_heads = 4
+
+    x = torch.randn(batch_size, seq_len, embed_dim)
+    block = TransformerBlock(embed_dim=embed_dim, num_heads=num_heads)
+
+    output, attn_weights = block(x)
+
+    print("transformer block output:", output.shape)
+    print("transformer block attention_weights:", attn_weights.shape)
+
+    assert output.shape == torch.Size([batch_size, seq_len, embed_dim])
+    assert attn_weights.shape == torch.Size([
+        batch_size,
+        num_heads,
+        seq_len,
+        seq_len,
+    ])
+
 
 def main():
     check_scaled_dot_product_attention()
     check_multi_head_attention()
+    check_transformer_block()
     print("Transformer attention shape checks passed.")
 
 if __name__ == '__main__':
