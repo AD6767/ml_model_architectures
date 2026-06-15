@@ -88,3 +88,19 @@ Different heads can learn different relationships, such as syntax, object relati
 It mixes the concatenated head outputs and maps them back into the model embedding space.
 9. How is causal attention different?
 Causal attention masks future tokens so each token can only attend to previous tokens.
+10. GELU vs ReLU: why do Transformers usually use GELU?
+ReLU fully zeros out negative values. GELU is smoother and gates values based on their magnitude. It does not sharply zero everything below zero. Transformers commonly use GELU because it works well in large deep networks and gives smoother gradients than ReLU.
+11. Where is GELU used in a Transformer block?
+GELU is usually used inside the MLP / feed-forward block: `Linear -> GeLU -> Linear`. Attention mixes information across tokens. The MLP updates each token representation independently.
+12. LayerNorm vs BatchNorm: why do Transformers use LayerNorm?
+BatchNorm normalize across batch dimension. LayerNorm normalize across feature dimension. For Transformer input `[B, seq_len, embed_dim]`, LayerNorm normalizes over embed_dim for each token independently. Transformers prefer LayerNorm because sequence lengths can vary, batch sizes may be small, and token-level normalization is more stable for language, vision tokens, and multimodal tokens.
+13. Why not use BatchNorm in Transformers?
+BatchNorm depends on batch-level statistics, which can be unstable for variable-length sequences, small batches, autoregressive decoding, and distributed training. LayerNorm does not depend on other examples in the batch, so it works better for sequence models.
+14. What type of Transformer block did we implement?
+We implemented a pre-norm Transformer encoder-style block. It is encoder-style because Q, K, and V all come from the same input sequence. We call it pre-norm because LayerNorm is applied before attention and before the MLP.
+15. Encoder block vs decoder block: what is the difference?
+encoder block uses bidirectional self-attention. decoder block uses causal self-attention.
+16. Why do Transformer blocks use residual connections?
+Residual connections help preserve the original representation and improve gradient flow. This makes deep Transformer stacks easier to train. `x = x + attention_output`, `x = x + mlp_output`.
+17. What does the MLP do in a Transformer block?
+The MLP transforms each token independently after attention. Attention = mixes information across tokens. MLP = mixes information across feature dimensions.
