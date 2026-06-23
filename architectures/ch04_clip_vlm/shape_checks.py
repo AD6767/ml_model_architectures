@@ -1,6 +1,7 @@
 import torch
 
 from architectures.ch04_clip_vlm.contrastive_loss import ClipContrastiveLoss
+from architectures.ch04_clip_vlm.mini_clip import MiniCLIP
 
 
 def check_clip_contrastive_loss():
@@ -47,10 +48,37 @@ def check_clip_contrastive_loss_with_matching_embeddings():
     assert logits_per_image.shape == torch.Size([batch_size, batch_size])
     assert logits_per_text.shape == torch.Size([batch_size, batch_size])
 
+def check_mini_clip_projection_heads():
+    batch_size = 4
+    image_feature_dim = 128
+    text_feature_dim = 256
+    embed_dim = 64
+
+    image_features = torch.randn(batch_size, image_feature_dim)
+    text_features = torch.randn(batch_size, text_feature_dim)
+
+    model = MiniCLIP(image_feature_dim, text_feature_dim, embed_dim)
+    image_embeddings, text_embeddings = model(
+        image_features=image_features,
+        text_features=text_features,
+    )
+
+    print("image_embeddings:", image_embeddings.shape)
+    print("text_embeddings:", text_embeddings.shape)
+    assert image_embeddings.shape == torch.Size([batch_size, embed_dim])
+    assert text_embeddings.shape == torch.Size([batch_size, embed_dim])
+
+    image_norms = image_embeddings.norm(dim=-1)
+    text_norms = text_embeddings.norm(dim=-1)
+    assert torch.allclose(image_norms, torch.ones_like(image_norms), atol=1e-5)
+    assert torch.allclose(text_norms, torch.ones_like(text_norms), atol=1e-5)
+
+
 def main():
     check_clip_contrastive_loss()
     check_clip_contrastive_loss_with_matching_embeddings()
-    print("CLIP contrastive loss shape checks passed.")
+    check_mini_clip_projection_heads()
+    print("CLIP/VLM shape checks passed.")
 
 
 if __name__ == "__main__":
